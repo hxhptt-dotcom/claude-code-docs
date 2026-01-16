@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code 官方文档 - 大白话版本</title>
+    <style>
+        /* ==================== CSS 变量定义 ==================== */
+        :root {
+            --primary-color: #CC785C;
+            --primary-light: #E8B4A8;
+            --primary-dark: #A85D3C;
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F5F7FA;
+            --text-primary: #2C3E50;
+            --text-secondary: #7F8C8D;
+            --border-color: #E1E8ED;
+            --code-bg: #282C34;
+            --code-text: #ABB2BF;
+            --success-color: #28a745;
+            --warning-bg: #FFF3CD;
+            --warning-border: #FFC107;
+            --shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        /* 深色模式 */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #1E1E1E;
+                --bg-secondary: #2D2D2D;
+                --text-primary: #E0E0E0;
+                --text-secondary: #A0A0A0;
+                --border-color: #404040;
+                --shadow: 0 2px 12px rgba(0,0,0,0.3);
+            }
+        }
+
+        body.dark-mode {
+            --bg-primary: #1E1E1E;
+            --bg-secondary: #2D2D2D;
+            --text-primary: #E0E0E0;
+            --text-secondary: #A0A0A0;
+            --border-color: #404040;
+            --shadow: 0 2px 12px rgba(0,0,0,0.3);
+        }
+
+        /* ==================== 全局样式 ==================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* ==================== 顶部导航栏 ==================== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .navbar .logo {
+            font-size: 20px;
+            font-weight: bold;
+            margin-right: 30px;
+            white-space: nowrap;
+        }
+
+        .navbar .search-box {
+            flex: 1;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .navbar .search-box input {
+            width: 100%;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .navbar .search-box input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .navbar .search-box input:focus {
+            outline: none;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .navbar .actions {
+            display: flex;
+            gap: 10px;
+            margin-left: 20px;
+        }
+
+        .navbar .actions button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .navbar .actions button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* 搜索结果弹窗 */
+        .search-results {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 600px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            padding: 15px;
+            display: none;
+            z-index: 1001;
+        }
+
+        .search-results.active {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .search-result-item:hover {
+            background: var(--bg-secondary);
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item h4 {
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .search-result-item p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* ==================== 侧边栏 ==================== */
+        .sidebar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            width: 250px;
+            bottom: 0;
+            overflow-y: auto;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 20px 0;
+            transition: transform 0.3s;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 70px;
+            left: 10px;
+            z-index: 999;
+            padding: 10px 15px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .menu-section {
+            margin-bottom: 10px;
+        }
+
+        .menu-title {
+            padding: 10px 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .menu-title:hover {
+            background: var(--bg-primary);
+        }
+
+        .menu-title::after {
+            content: '▼';
+            font-size: 10px;
+            transition: transform 0.3s;
+        }
+
+        .menu-section.collapsed .menu-title::after {
+            transform: rotate(-90deg);
+        }
+
+        .menu-items {
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s;
+        }
+
+        .menu-section.collapsed .menu-items {
+            max-height: 0;
+        }
+
+        .menu-item {
+            padding: 8px 20px 8px 40px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .menu-item:hover {
+            background: var(--bg-primary);
+            color: var(--primary-color);
+        }
+
+        .menu-item.active {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border-left: 4px solid var(--primary-color);
+            padding-left: 36px;
+        }
+
+        /* 收藏面板 */
+        .bookmark-panel {
+            border-top: 2px solid var(--border-color);
+            margin-top: 20px;
+            padding-top: 15px;
+        }
+
+        .bookmark-panel h3 {
+            padding: 0 20px 10px;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .bookmark-list {
+            list-style: none;
+        }
+
+        .bookmark-item {
+            padding: 8px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .bookmark-item a {
+            flex: 1;
+            color: var(--text-secondary);
+        }
+
+        .bookmark-item .remove-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0 5px;
+        }
+
+        .bookmark-item .remove-btn:hover {
+            color: #dc3545;
+        }
+
+        /* ==================== 主内容区 ==================== */
+        .main-content {
+            margin-left: 250px;
+            margin-top: 60px;
+            padding: 30px;
+            min-height: calc(100vh - 60px);
+        }
+
+        .content-card {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .content-card h2 {
+            color: var(--primary-dark);
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .content-card h3 {
+            color: var(--text-primary);
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .content-card h4 {
+            color: var(--text-primary);
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .content-card p {
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .content-card ul, .content-card ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+
+        .content-card li {
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        /* 描述和标签 */
+        .desc {
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .tags {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* 代码块 */
+        pre {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        pre code {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #21252B;
+            padding: 8px 15px;
+            border-radius: 8px 8px 0 0;
+            margin: 15px 0 0;
+            font-size: 13px;
+            color: #ABB2BF;
+        }
+
+        .code-header + pre {
+            margin: 0;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .copy-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .copy-btn.copied {
+            background: var(--success-color);
+        }
+
+        /* 示例块 */
+        .example {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        /* 表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        td {
+            color: var(--text-secondary);
+        }
+
+        code:not(pre code) {
+            background: var(--bg-secondary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: var(--primary-dark);
+        }
+
+        /* 警告框 */
+        .warning {
+            background: var(--warning-bg);
+            border-left: 4px solid var(--warning-border);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .warning strong {
+            color: #856404;
+        }
+
+        /* 收藏按钮 */
+        .bookmark-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .bookmark-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .bookmark-btn.bookmarked {
+            background: #FFC107;
+            color: #333;
+        }
+
+        /* 相关链接 */
+        .related-links {
+            margin-top: 20px;
+        }
+
+        .link-card {
+            display: inline-block;
+            background: var(--bg-secondary);
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .link-card:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            text-decoration: none;
+        }
+
+        /* ==================== 响应式设计 ==================== */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 998;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px 15px;
+            }
+
+            .navbar .logo {
+                font-size: 16px;
+                margin-right: 15px;
+            }
+
+            .navbar .search-box {
+                max-width: 200px;
+            }
+
+            .content-card {
+                padding: 20px;
+            }
+        }
+
+        /* ==================== 打印样式 ==================== */
+        @media print {
+            .navbar,
+            .sidebar,
+            .sidebar-toggle,
+            .copy-btn,
+            .bookmark-btn {
+                display: none !important;
+            }
+
+            .main-content {
+                margin: 0;
+                padding: 0;
+            }
+
+            .content-card {
+                page-break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+
+            a {
+                text-decoration: underline;
+                color: black;
+            }
+        }
+
+        /* ==================== 滚动条样式 ==================== */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="navbar">
+        <div class="logo">📘 Claude Code 文档</div>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="搜索命令、配置、功能... (Ctrl+K)">
+        </div>
+        <div class="actions">
+            <button id="themeBtn" title="切换主题">🌙</button>
+        </div>
+    </header>
+
+    <!-- 搜索结果 -->
+    <div id="searchResults" class="search-results"></div>
+
+    <!-- 侧边栏切换按钮(移动端) -->
+    <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+
+    <!-- 侧边栏 -->
+    <aside class="sidebar" id="sidebar">
+        <!-- 目录树 -->
+        <nav id="mainNav"></nav>
+
+        <!-- 收藏面板 -->
+        <div class="bookmark-panel">
+            <h3>⭐ 我的收藏</h3>
+            <ul id="bookmarkList" class="bookmark-list"></ul>
+        </div>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+
+        <!-- 快速开始 -->
+        <section id="quick-start" class="content-card">
+            <h2>🚀 快速开始</h2>
+
+            <h3>什么是 Claude Code?</h3>
+            <p class="desc">
+                <strong>大白话解释:</strong> Claude Code 就像一个超级聪明的编程助手,它住在你的终端里。你只需要用自然语言告诉它你想做什么,它就能帮你写代码、修bug、理解项目结构,甚至还能帮你提交代码、跑测试。就像请了一个24小时在线的高级程序员!
+            </p>
+
+            <h3>5分钟入门</h3>
+
+            <div class="example">
+                <h4>步骤1: 安装 Claude Code</h4>
+                <p>选择你的系统,复制对应的命令:</p>
+
+                <div class="code-header">macOS / Linux / WSL</div>
+                <pre><code class="language-bash">curl -fsSL https://claude.ai/install.sh | bash</code></pre>
+                <button class="copy-btn" onclick="copyCode(this, this.parentElement.nextElementSibling)">📋 复制</button>
+
+                <div class="code-header">Windows PowerShell</div>
+                <pre><code class="language-bash">irm https://claude.ai/install.ps1 | iex</code></pre>
+                <button class="copy-btn" onclick="copyCode(this, this.parentElement.nextElementSibling)">📋 复制</button>
+            </div>
+
+            <div class="example">
+                <h4>步骤2: 首次启动</h4>
+                <p>安装完成后,在终端输入:</p>
+                <pre><code class="language-bash">claude</code></pre>
+                <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+                <p>系统会提示你登录,用 Claude.ai 账号登录即可。</p>
+            </div>
+
+            <div class="example">
+                <h4>步骤3: 开始使用</h4>
+                <p>试试这些命令:</p>
+                <pre><code class="language-bash"># 让 Claude 帮你创建一个待办事项应用
+claude "帮我创建一个 React 待办事项应用,支持添加、删除、标记完成"
+
+# 让 Claude 帮你修复错误
+claude "我的应用报错了: TypeError: Cannot read property 'map' of undefined"
+
+# 让 Claude 帮你理解代码
+claude "解释一下这个函数是做什么的: src/utils/helper.js 第45行"</code></pre>
+                <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+            </div>
+
+            <h3>核心能力</h3>
+            <ul>
+                <li>✅ <strong>从描述构建功能</strong> - 用纯中文描述你想做什么,Claude 会制定计划、编写代码并确保工作</li>
+                <li>✅ <strong>调试和修复问题</strong> - 描述错误或粘贴错误信息,Claude 会分析代码库并实施修复</li>
+                <li>✅ <strong>导航任何代码库</strong> - 询问团队的代码库,获得深思熟虑的答案</li>
+                <li>✅ <strong>自动化繁琐任务</strong> - 修复 lint 问题、解决合并冲突、编写发行说明</li>
+            </ul>
+
+            <button class="bookmark-btn" onclick="toggleBookmark('quick-start', '快速开始')">⭐ 收藏此功能</button>
+        </section>
+
+        <!-- Slash 命令 -->
+        <section id="slash-commands" class="content-card">
+            <h2>⚡ Slash 命令详解</h2>
+            <p class="desc">
+                <strong>什么是 Slash 命令?</strong> 就像是 Claude Code 的快捷指令!只要输入一个斜杠 "/" 加上命令名,就能快速执行特定功能。不用记复杂的参数,不用写长篇指令,一个命令搞定!
+            </p>
+
+            <!-- /commit -->
+            <article id="commit" class="example" style="border-left-color: var(--primary-color);">
+                <h3>/commit - 智能代码提交</h3>
+                <p class="desc">大白话:就像一个聪明的助手,自动帮你写 Git 提交信息。它会分析你的代码变更,生成规范的提交信息,还能按照团队的风格来写!</p>
+
+                <div class="tags">
+                    <span class="tag">难度:⭐</span>
+                    <span class="tag">频率:每日必用</span>
+                </div>
+
+                <h4>🔍 它是怎么工作的?</h4>
+                <p>Claude Code 会扫描你的 Git 仓库,找出所有修改的文件,分析变更内容,然后生成符合规范的提交信息(比如 Conventional Commits 格式)。</p>
+
+                <h4>📝 使用示例</h4>
+
+                <div class="example">
+                    <h5>示例1: 基础提交</h5>
+                    <p>场景:修复了一个登录超时的 bug</p>
+                    <pre><code class="language-bash">/commit</code></pre>
+                    <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+                    <p><strong>输出:</strong></p>
+                    <pre><code class="language-text">✓ 已分析 3 个文件的变更
+✓ 生成提交信息: "fix: 修复用户登录超时问题"
+✓ 已创建提交 abc123def</code></pre>
+                </div>
+
+                <div class="example">
+                    <h5>示例2: 自定义提交信息</h5>
+                    <pre><code class="language-bash">/commit -m "feat: 添加用户头像上传功能"</code></pre>
+                    <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+                </div>
+
+                <div class="example">
+                    <h5>示例3: 修改最后一次提交</h5>
+                    <pre><code class="language-bash">/commit --amend</code></pre>
+                    <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+                </div>
+
+                <h4>⚙️ 参数说明</h4>
+                <table>
+                    <tr><th>参数</th><th>说明</th><th>默认值</th></tr>
+                    <tr><td><code>-m &lt;消息&gt;</code></td><td>自定义提交信息</td><td>AI 自动生成</td></tr>
+                    <tr><td><code>--amend</code></td><td>修改最后一次提交</td><td>false</td></tr>
+                    <tr><td><code>--no-verify</code></td><td>跳过 pre-commit 钩子</td><td>false</td></tr>
+                </table>
+
+                <h4>💡 最佳实践</h4>
+                <ul>
+                    <li>✅ 每完成一个功能就提交一次,不要堆积太多变更</li>
+                    <li>✅ 提交前确保代码通过测试</li>
+                    <li>✅ 提交信息要清晰明了,AI 生成的通常不错,但可以微调</li>
+                    <li>❌ 避免一次提交过多文件(超过 20 个文件考虑拆分)</li>
+                </ul>
+
+                <h4>⚠️ 注意事项</h4>
+                <div class="warning">
+                    <p><strong>重要:</strong> 提交前务必检查敏感信息(API 密钥、密码等)!Claude Code 会提示你,但最终责任在你。</p>
+                </div>
+
+                <div class="related-links">
+                    <h4>🔗 相关内容</h4>
+                    <a href="#push" class="link-card">/push - 推送代码</a>
+                    <a href="#branch" class="link-card">/branch - 分支管理</a>
+                    <a href="#git-commands" class="link-card">其他 Git 命令</a>
+                </div>
+
+                <button class="bookmark-btn" onclick="toggleBookmark('commit', '/commit - 智能提交')">⭐ 收藏此功能</button>
+            </article>
+
+            <!-- /push -->
+            <article id="push" class="example" style="border-left-color: var(--primary-color); margin-top: 30px;">
+                <h3>/push - 推送代码到远程</h3>
+                <p class="desc">大白话:把你的本地提交推送到 GitHub/GitLab 等远程仓库,就像把作业上传给老师。</p>
+
+                <div class="tags">
+                    <span class="tag">难度:⭐</span>
+                    <span class="tag">频率:每日必用</span>
+                </div>
+
+                <h4>📝 使用示例</h4>
+                <div class="example">
+                    <h5>示例1: 推送到远程</h5>
+                    <pre><code class="language-bash">/push</code></pre>
+                    <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+                </div>
+
+                <div class="example">
+                    <h5>示例2: 推送到指定分支</h5>
+                    <pre><code class="language-bash">/push origin feature/new-ui</code></pre>
+                    <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+                </div>
+
+                <h4>💡 最佳实践</h4>
+                <ul>
+                    <li>✅ 推送前先拉取远程更新(<code>/pull</code>)</li>
+                    <li>✅ 确保本地测试通过再推送</li>
+                    <li>❌ 不要推送包含 <code>.env</code> 等敏感文件的提交</li>
+                </ul>
+
+                <button class="bookmark-btn" onclick="toggleBookmark('push', '/push - 推送代码')">⭐ 收藏此功能</button>
+            </article>
+
+            <!-- /test -->
+            <article id="test" class="example" style="border-left-color: var(--primary-color); margin-top: 30px;">
+                <h3>/test - 运行测试</h3>
+                <p class="desc">大白话:自动检测你的测试框架(Jest、pytest、JUnit 等),然后运行测试,还能帮你分析失败的原因!</p>
+
+                <div class="tags">
+                    <span class="tag">难度:⭐</span>
+                    <span class="tag">频率:每日必用</span>
+                </div>
+
+                <h4>📝 使用示例</h4>
+                <div class="example">
+                    <h5>示例1: 运行所有测试</h5>
+                    <pre><code class="language-bash">/test</code></pre>
+                    <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+                </div>
+
+                <div class="example">
+                    <h5>示例2: 运行特定测试文件</h5>
+                    <pre><code class="language-bash">/test src/auth/__tests__/login.test.js</code></pre>
+                    <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+                </div>
+
+                <div class="example">
+                    <h5>示例3: 运行失败的测试</h5>
+                    <pre><code class="language-bash">/test --only-failures</code></pre>
+                    <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+                </div>
+
+                <h4>💡 最佳实践</h4>
+                <ul>
+                    <li>✅ 提交代码前运行测试</li>
+                    <li>✅ 测试失败时让 Claude 分析原因</li>
+                    <li>✅ 保持测试覆盖率在 80% 以上</li>
+                </ul>
+
+                <button class="bookmark-btn" onclick="toggleBookmark('test', '/test - 运行测试')">⭐ 收藏此功能</button>
+            </article>
+
+            <!-- /plan -->
+            <article id="plan" class="example" style="border-left-color: var(--primary-color); margin-top: 30px;">
+                <h3>/plan - 制定计划</h3>
+                <p class="desc">大白话:在开始写代码前,先让 Claude 帮你制定一个详细的实施计划。就像做菜前先看菜谱,避免做到一半发现缺材料!</p>
+
+                <div class="tags">
+                    <span class="tag">难度:⭐⭐</span>
+                    <span class="tag">频率:每周使用</span>
+                </div>
+
+                <h4>📝 使用示例</h4>
+                <div class="example">
+                    <h5>示例1: 为新功能制定计划</h5>
+                    <pre><code class="language-bash">/plan 添加用户评论功能,支持点赞和回复</code></pre>
+                    <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+                </div>
+
+                <h4>💡 最佳实践</h4>
+                <ul>
+                    <li>✅ 复杂功能(超过 3 个文件)先计划</li>
+                    <li>✅ 审查计划后再开始编码</li>
+                    <li>✅ 可以让 Claude 修改计划</li>
+                </ul>
+
+                <button class="bookmark-btn" onclick="toggleBookmark('plan', '/plan - 制定计划')">⭐ 收藏此功能</button>
+            </article>
+
+            <!-- /review -->
+            <article id="review" class="example" style="border-left-color: var(--primary-color); margin-top: 30px;">
+                <h3>/review - 代码审查</h3>
+                <p class="desc">大白话:让 Claude 当你的代码审查员,找出潜在的 bug、性能问题、安全漏洞,还能给出改进建议!</p>
+
+                <div class="tags">
+                    <span class="tag">难度:⭐</span>
+                    <span class="tag">频率:每周使用</span>
+                </div>
+
+                <h4>📝 使用示例</h4>
+                <div class="example">
+                    <h5>示例1: 审查当前变更</h5>
+                    <pre><code class="language-bash">/review</code></pre>
+                    <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+                </div>
+
+                <div class="example">
+                    <h5>示例2: 审查指定文件</h5>
+                    <pre><code class="language-bash">/review src/auth/login.js</code></pre>
+                    <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+                </div>
+
+                <h4>💡 最佳实践</h4>
+                <ul>
+                    <li>✅ 提交前审查代码</li>
+                    <li>✅ 重点审查安全相关的代码</li>
+                    <li>✅ 根据建议优化代码质量</li>
+                </ul>
+
+                <button class="bookmark-btn" onclick="toggleBookmark('review', '/review - 代码审查')">⭐ 收藏此功能</button>
+            </article>
+
+            <!-- 更多 Slash 命令占位 -->
+            <div style="margin-top: 30px; padding: 20px; background: var(--bg-secondary); border-radius: 8px; text-align: center;">
+                <p><strong>更多 Slash 命令...</strong></p>
+                <p style="color: var(--text-secondary);">本文档包含 40+ 个 Slash 命令详解,包括:</p>
+                <div style="margin-top: 15px;">
+                    <span class="tag">/add-dir</span>
+                    <span class="tag">/agents</span>
+                    <span class="tag">/bashes</span>
+                    <span class="tag">/clear</span>
+                    <span class="tag">/compact</span>
+                    <span class="tag">/config</span>
+                    <span class="tag">/context</span>
+                    <span class="tag">/cost</span>
+                    <span class="tag">/doctor</span>
+                    <span class="tag">/help</span>
+                    <span class="tag">/hooks</span>
+                    <span class="tag">/init</span>
+                    <span class="tag">/memory</span>
+                    <span class="tag">/model</span>
+                    <span class="tag">/mcp</span>
+                    <span class="tag">/permissions</span>
+                    <span class="tag">/refactor</span>
+                    <span class="tag">/rewind</span>
+                    <span class="tag">/stats</span>
+                    <span class="tag">/usage</span>
+                </div>
+                <p style="margin-top: 15px; font-size: 13px; color: var(--text-secondary);">(完整版本会包含所有命令的详细说明)</p>
+            </div>
+        </section>
+
+        <!-- 配置系统 -->
+        <section id="config" class="content-card">
+            <h2>⚙️ 配置系统</h2>
+            <p class="desc">
+                <strong>大白话解释:</strong> Claude Code 有四层配置,就像穿衣一样,有内衣、衬衫、外套、雨衣,每层都能覆盖上面一层的设置。这样你可以在不同层级灵活配置!
+            </p>
+
+            <h3>四层配置架构</h3>
+
+            <div class="example">
+                <h4>1. Managed 配置(自动管理)</h4>
+                <p><strong>位置:</strong> 系统自动管理<br>
+                <strong>优先级:</strong> 最高<br>
+                <strong>用途:</strong> 企业环境自动推送的配置</p>
+                <pre><code class="language-json">// 无法直接编辑,由管理员控制
+{
+  "allowedModels": ["claude-sonnet-4-5"],
+  "apiEndpoint": "https://enterprise.api.anthropic.com"
+}</code></pre>
+            </div>
+
+            <div class="example">
+                <h4>2. User 配置(用户级)</h4>
+                <p><strong>位置:</strong> <code>~/.claude/settings.json</code><br>
+                <strong>优先级:</strong> 第二<br>
+                <strong>用途:</strong> 你的个人设置,所有项目都生效</p>
+                <pre><code class="language-json">{
+  "model": "claude-sonnet-4-5",
+  "temperature": 0.7,
+  "maxTokens": 200000,
+  "theme": "dark"
+}</code></pre>
+                <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+            </div>
+
+            <div class="example">
+                <h4>3. Project 配置(项目级)</h4>
+                <p><strong>位置:</strong> <code>&lt;项目&gt;/.claude/settings.json</code><br>
+                <strong>优先级:</strong> 第三<br>
+                <strong>用途:</strong> 项目特定设置,团队共享(提交到 Git)</p>
+                <pre><code class="language-json">{
+  "model": "claude-haiku-4-5",
+  "permissions": {
+    "allowedCommands": ["npm", "git", "node"]
+  },
+  "hooks": {
+    "pre-commit": "npm run lint"
+  }
+}</code></pre>
+                <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+            </div>
+
+            <div class="example">
+                <h4>4. Local 配置(本地临时)</h4>
+                <p><strong>位置:</strong> <code>&lt;项目&gt;/.claude/settings.local.json</code><br>
+                <strong>优先级:</strong> 最低(覆盖所有)<br>
+                <strong>用途:</strong> 临时覆盖设置,不提交到 Git</p>
+                <pre><code class="language-json">{
+  "apiKey": "sk-ant-...",  // 不要提交!
+  "debug": true
+}</code></pre>
+                <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+            </div>
+
+            <h3>配置优先级</h3>
+            <p>从高到低: Local > Project > User > Managed</p>
+            <p><strong>例子:</strong> 如果 User 设置 <code>model: "sonnet"</code>,但 Project 设置 <code>model: "haiku"</code>,那么在这个项目中会使用 haiku。</p>
+
+            <h3>常用配置项</h3>
+            <table>
+                <tr><th>配置项</th><th>说明</th><th>默认值</th></tr>
+                <tr><td><code>model</code></td><td>使用的 AI 模型</td><td>claude-sonnet-4-5</td></tr>
+                <tr><td><code>temperature</code></td><td>创造性(0-1)</td><td>0.7</td></tr>
+                <tr><td><code>maxTokens</code></td><td>最大输出 token</td><td>200000</td></tr>
+                <tr><td><code>theme</code></td><td>主题(dark/light)</td><td>系统自动</td></tr>
+                <tr><td><code>permissions</code></td><td>权限设置</td><td>自动检测</td></tr>
+            </table>
+
+            <h3>💡 最佳实践</h3>
+            <ul>
+                <li>✅ 把 .claude/settings.json 提交到 Git(团队共享)</li>
+                <li>✅ 把 .claude/settings.local.json 加入 .gitignore(个人设置)</li>
+                <li>✅ Project 配置放团队规范(User 配置放个人偏好)</li>
+                <li>❌ 不要在配置文件中硬编码 API 密钥</li>
+            </ul>
+
+            <button class="bookmark-btn" onclick="toggleBookmark('config', '配置系统')">⭐ 收藏此功能</button>
+        </section>
+
+        <!-- Skills 系统 -->
+        <section id="skills" class="content-card">
+            <h2>🎯 技能系统 (Skills)</h2>
+            <p class="desc">
+                <strong>大白话解释:</strong> 技能就像是 Claude Code 的"插件"或"宏命令"。你可以把常用的操作序列、特殊的提示词模板、团队规范等封装成技能,随时调用!
+            </p>
+
+            <h3>什么是技能?</h3>
+            <p>技能是一个包含配置和提示的文件夹,当你在对话中输入特定关键词时,Claude 会自动加载并执行这个技能。</p>
+
+            <h3>技能结构</h3>
+            <pre><code class="language-bash">my-skill/
+├── SKILL.md          # 技能说明文件(必需)
+├── prompt.md         # 提示词模板(可选)
+├── config.json       # 技能配置(可选)
+└── helpers/          # 辅助文件(可选)
+    └── template.js</code></pre>
+            <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+
+            <h3>技能示例</h3>
+            <div class="example">
+                <h4>示例1: 代码审查技能</h4>
+                <p><strong>SKILL.md:</strong></p>
+                <pre><code class="language-markdown">---
+name: code-review
+description: 专业的代码审查技能
+trigger: 审查代码
+---
+
+# 代码审查技能
+
+你是一位资深代码审查员,请检查以下方面:
+1. 代码逻辑错误
+2. 性能问题
+3. 安全漏洞
+4. 代码风格
+5. 最佳实践</code></pre>
+                <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+                <p><strong>使用:</strong> 在对话中说"帮我审查这段代码"或"触发 code-review 技能"</p>
+            </div>
+
+            <h3>技能位置</h3>
+            <ul>
+                <li><strong>项目技能:</strong> <code>.claude/skills/</code> - 项目内共享</li>
+                <li><strong>用户技能:</strong> <code>~/.claude/skills/</code> - 所有项目可用</li>
+                <li><strong>插件技能:</strong> 通过插件安装</li>
+            </ul>
+
+            <h3>💡 最佳实践</h3>
+            <ul>
+                <li>✅ 把团队规范封装成技能(如代码风格、提交信息格式)</li>
+                <li>✅ 技能命名要清晰,容易记住</li>
+                <li>✅ 编写详细的技能说明文档</li>
+                <li>❌ 不要在技能中硬编码敏感信息</li>
+            </ul>
+
+            <button class="bookmark-btn" onclick="toggleBookmark('skills', '技能系统')">⭐ 收藏此功能</button>
+        </section>
+
+        <!-- MCP 集成 -->
+        <section id="mcp" class="content-card">
+            <h2>🔌 MCP 集成</h2>
+            <p class="desc">
+                <strong>大白话解释:</strong> MCP(Model Context Protocol)让 Claude Code 能连接外部工具和数据源,比如 Google Drive、Figma、Slack、数据库等。就像给 Claude 装上了"眼睛"和"手"!
+            </p>
+
+            <h3>MCP 是什么?</h3>
+            <p>MCP 是一个开放协议,允许 AI 工具访问外部服务。通过 MCP,Claude Code 可以:</p>
+            <ul>
+                <li>📄 读取 Google Docs 中的设计文档</li>
+                <li>🎨 获取 Figma 设计稿</li>
+                <li>💬 在 Slack 中发送消息</li>
+                <li>🗄️ 查询数据库</li>
+                <li>📊 调用内部 API</li>
+            </ul>
+
+            <h3>安装配置</h3>
+            <div class="example">
+                <h4>步骤1: 安装 MCP 服务器</h4>
+                <pre><code class="language-bash">npm install -g @anthropic/mcp-server-gdrive</code></pre>
+                <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+            </div>
+
+            <div class="example">
+                <h4>步骤2: 配置 MCP</h4>
+                <p>在 <code>~/.claude/settings.json</code> 中添加:</p>
+                <pre><code class="language-json">{
+  "mcpServers": {
+    "gdrive": {
+      "command": "npx",
+      "args": ["@anthropic/mcp-server-gdrive"],
+      "env": {
+        "GDRIVE_API_KEY": "your-api-key"
+      }
+    }
+  }
+}</code></pre>
+                <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+            </div>
+
+            <div class="example">
+                <h4>步骤3: 使用 MCP</h4>
+                <pre><code class="language-bash"># 读取 Google Drive 中的文档
+claude "读取 gdrive://document-123 中的需求文档,然后生成对应的 API 设计"
+
+# 获取 Figma 设计
+claude "从 figma://file-456 获取按钮组件的样式,用 Tailwind CSS 实现"</code></pre>
+                <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+            </div>
+
+            <h3>常用 MCP 服务器</h3>
+            <table>
+                <tr><th>服务器</th><th>功能</th></tr>
+                <tr><td>@anthropic/mcp-server-gdrive</td><td>Google Drive 集成</td></tr>
+                <tr><td>@anthropic/mcp-server-figma</td><td>Figma 设计稿</td></tr>
+                <tr><td>@anthropic/mcp-server-slack</td><td>Slack 消息</td></tr>
+                <tr><td>@anthropic/mcp-server-postgres</td><td>PostgreSQL 数据库</td></tr>
+                <tr><td>@anthropic/mcp-server-filesystem</td><td>文件系统访问</td></tr>
+            </table>
+
+            <h3>💡 最佳实践</h3>
+            <ul>
+                <li>✅ 只授予必要的权限(最小权限原则)</li>
+                <li>✅ 定期更新 MCP 服务器</li>
+                <li>✅ 使用环境变量存储敏感信息</li>
+                <li>❌ 不要在代码中硬编码 API 密钥</li>
+            </ul>
+
+            <button class="bookmark-btn" onclick="toggleBookmark('mcp', 'MCP 集成')">⭐ 收藏此功能</button>
+        </section>
+
+        <!-- VS Code 扩展 -->
+        <section id="vscode" class="content-card">
+            <h2>🛠️ VS Code 扩展</h2>
+            <p class="desc">
+                <strong>大白话解释:</strong> Claude Code 也有 VS Code 插件!这样你就可以在熟悉的编辑器里使用 Claude 的能力,不用切换到终端了。
+            </p>
+
+            <h3>安装方法</h3>
+            <div class="example">
+                <h4>方式1: 从 VS Code Marketplace 安装</h4>
+                <ol>
+                    <li>打开 VS Code</li>
+                    <li>按 <code>Ctrl+Shift+X</code> 打开扩展面板</li>
+                    <li>搜索 "Claude Code"</li>
+                    <li>点击"安装"</li>
+                </ol>
+            </div>
+
+            <h3>核心功能</h3>
+            <ul>
+                <li>✅ <strong>内联聊天</strong> - 选中代码,右键选择"Ask Claude"</li>
+                <li>✅ <strong>代码生成</strong> - 注释中写需求,自动生成代码</li>
+                <li>✅ <strong>错误修复</strong> - 点击错误,选择"Fix with Claude"</li>
+                <li>✅ <strong>代码解释</strong> - 选中函数,选择"Explain Code"</li>
+                <li>✅ <strong>重构建议</strong> - 选中代码块,选择"Suggest Refactor"</li>
+            </ul>
+
+            <h3>快捷键</h3>
+            <table>
+                <tr><th>快捷键</th><th>功能</th></tr>
+                <tr><td><code>Ctrl+Shift+A</code></td><td>打开 Claude 面板</td></tr>
+                <tr><td><code>Ctrl+Shift+E</code></td><td>解释选中代码</td></tr>
+                <tr><td><code>Ctrl+Shift+R</code></td><td>重构选中代码</td></tr>
+            </table>
+
+            <button class="bookmark-btn" onclick="toggleBookmark('vscode', 'VS Code 扩展')">⭐ 收藏此功能</button>
+        </section>
+
+        <!-- CI/CD 集成 -->
+        <section id="cicd" class="content-card">
+            <h2>🚀 CI/CD 集成</h2>
+            <p class="desc">
+                <strong>大白话解释:</strong> 你可以在 CI/CD 流水线中使用 Claude Code!比如自动审查 PR、生成发布说明、运行测试等。
+            </p>
+
+            <h3>GitHub Actions 集成</h3>
+            <div class="example">
+                <h4>示例: 自动审查 Pull Request</h4>
+                <p><strong>.github/workflows/claude-review.yml:</strong></p>
+                <pre><code class="language-yaml">name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Claude Code
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash
+
+      - name: Review Changes
+        run: |
+          claude /review --format markdown > review.md
+
+      - name: Comment on PR
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const review = fs.readFileSync('review.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: review
+            });</code></pre>
+                <button class="copy-btn" onclick="copyCode(this, this.previousElementSibling)">📋 复制</button>
+            </div>
+
+            <h3>💡 最佳实践</h3>
+            <ul>
+                <li>✅ 使用环境变量存储 API 密钥</li>
+                <li>✅ 限制 Claude 的权限(只读模式)</li>
+                <li>✅ 设置超时时间,避免无限运行</li>
+                <li>✅ 缓存依赖,加速构建</li>
+            </ul>
+
+            <button class="bookmark-btn" onclick="toggleBookmark('cicd', 'CI/CD 集成')">⭐ 收藏此功能</button>
+        </section>
+
+        <!-- 最佳实践 -->
+        <section id="best-practices" class="content-card">
+            <h2>💡 最佳实践</h2>
+
+            <h3>工作流程建议</h3>
+            <ol>
+                <li><strong>开始任务前</strong> - 使用 <code>/plan</code> 制定计划</li>
+                <li><strong>编码时</strong> - 小步迭代,频繁提交(<code>/commit</code>)</li>
+                <li><strong>提交前</strong> - 运行测试(<code>/test</code>),审查代码(<code>/review</code>)</li>
+                <li><strong>完成后</strong> - 推送代码(<code>/push</code>),创建 PR</li>
+            </ol>
+
+            <h3>性能优化</h3>
+            <ul>
+                <li>✅ 使用 Haiku 模型处理简单任务(节省成本)</li>
+                <li>✅ 限制上下文大小(只包含相关文件)</li>
+                <li>✅ 使用 <code>/compact</code> 压缩对话历史</li>
+                <li>✅ 定期使用 <code>/clear</code> 清理会话</li>
+            </ul>
+
+            <h3>团队协作</h3>
+            <ul>
+                <li>✅ 在项目中创建 <code>.claude/settings.json</code>(团队规范)</li>
+                <li>✅ 创建团队技能(代码风格、提交信息格式等)</li>
+                <li>✅ 使用 <code>CLAUDE.md</code> 记录项目上下文</li>
+                <li>✅ 定期同步最佳实践</li>
+            </ul>
+
+            <h3>常见陷阱</h3>
+            <ul>
+                <li>❌ 不要让 Claude 直接操作生产数据库</li>
+                <li>❌ 不要在提示中包含敏感信息(API 密钥、密码)</li>
+                <li>❌ 不要盲目信任 Claude 生成的代码,要审查</li>
+                <li>❌ 不要一次性让 Claude 做太多事情(拆分任务)</li>
+            </ul>
+
+            <button class="bookmark-btn" onclick="toggleBookmark('best-practices', '最佳实践')">⭐ 收藏此功能</button>
+        </section>
+
+        <!-- 常见问题 -->
+        <section id="faq" class="content-card">
+            <h2>❓ 常见问题</h2>
+
+            <h3>Q: Claude Code 是免费的吗?</h3>
+            <p><strong>A:</strong> Claude Code 本身免费,但调用 Claude API 需要付费。建议使用 Claude Pro($20/月)无限量使用。</p>
+
+            <h3>Q: 我的代码会被上传到服务器吗?</h3>
+            <p><strong>A:</strong> 是的,为了分析代码,需要发送到 Anthropic 的 API。企业用户可以选择私有部署。</p>
+
+            <h3>Q: 支持哪些编程语言?</h3>
+            <p><strong>A:</strong> 几乎所有语言!Python、JavaScript、TypeScript、Java、C++、Go、Rust 等都没问题。</p>
+
+            <h3>Q: 可以离线使用吗?</h3>
+            <p><strong>A:</strong> 不可以。Claude Code 需要连接 Anthropic API 才能工作。</p>
+
+            <h3>Q: 如何限制权限?</h3>
+            <p><strong>A:</strong> 在 <code>settings.json</code> 中配置 <code>permissions</code>,可以限制允许执行的命令、访问的文件等。</p>
+
+            <h3>Q: Claude Code 会改我的代码吗?</h3>
+            <p><strong>A:</strong> 默认不会。只有在你明确请求时(比如"修复这个 bug"),Claude 才会修改文件。修改前会显示 diff,让你确认。</p>
+
+            <button class="bookmark-btn" onclick="toggleBookmark('faq', '常见问题')">⭐ 收藏此功能</button>
+        </section>
+
+    </main>
+
+    <script>
+        // ==================== 数据定义 ====================
+        const menuStructure = [
+            {
+                title: "🚀 快速开始",
+                id: "quick-start",
+                children: [
+                    { title: "什么是 Claude Code", id: "quick-start" },
+                    { title: "5分钟入门", id: "quick-start" }
+                ]
+            },
+            {
+                title: "⚡ Slash 命令",
+                id: "slash-commands",
+                children: [
+                    { title: "/commit - 智能提交", id: "commit" },
+                    { title: "/push - 推送代码", id: "push" },
+                    { title: "/test - 运行测试", id: "test" },
+                    { title: "/plan - 制定计划", id: "plan" },
+                    { title: "/review - 代码审查", id: "review" }
+                ]
+            },
+            {
+                title: "⚙️ 配置系统",
+                id: "config",
+                children: [
+                    { title: "四层配置架构", id: "config" },
+                    { title: "配置优先级", id: "config" },
+                    { title: "配置文件示例", id: "config" }
+                ]
+            },
+            {
+                title: "🎯 技能系统",
+                id: "skills",
+                children: [
+                    { title: "什么是技能", id: "skills" },
+                    { title: "技能示例", id: "skills" },
+                    { title: "最佳实践", id: "skills" }
+                ]
+            },
+            {
+                title: "🔌 MCP 集成",
+                id: "mcp",
+                children: [
+                    { title: "MCP 是什么", id: "mcp" },
+                    { title: "安装配置", id: "mcp" },
+                    { title: "常用服务器", id: "mcp" }
+                ]
+            },
+            {
+                title: "🛠️ VS Code 扩展",
+                id: "vscode",
+                children: [
+                    { title: "安装方法", id: "vscode" },
+                    { title: "核心功能", id: "vscode" },
+                    { title: "快捷键", id: "vscode" }
+                ]
+            },
+            {
+                title: "🚀 CI/CD 集成",
+                id: "cicd",
+                children: [
+                    { title: "GitHub Actions", id: "cicd" },
+                    { title: "最佳实践", id: "cicd" }
+                ]
+            },
+            {
+                title: "💡 最佳实践",
+                id: "best-practices",
+                children: [
+                    { title: "工作流程", id: "best-practices" },
+                    { title: "性能优化", id: "best-practices" },
+                    { title: "团队协作", id: "best-practices" }
+                ]
+            },
+            {
+                title: "❓ 常见问题",
+                id: "faq",
+                children: []
+            }
+        ];
+
+        // ==================== 导航系统 ====================
+        function renderMenu() {
+            const nav = document.getElementById('mainNav');
+            let html = '';
+
+            menuStructure.forEach(section => {
+                html += `
+                    <div class="menu-section">
+                        <div class="menu-title" onclick="toggleMenuSection(this.parentElement)">
+                            ${section.title}
+                        </div>
+                        <div class="menu-items">
+                            ${section.children.map(item => `
+                                <div class="menu-item" data-id="${item.id}" onclick="scrollToSection('${item.id}')">
+                                    ${item.title}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            nav.innerHTML = html;
+        }
+
+        function toggleMenuSection(element) {
+            element.classList.toggle('collapsed');
+        }
+
+        function scrollToSection(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                const offset = 80;
+                const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+                window.scrollTo({
+                    top: elementPosition - offset,
+                    behavior: 'smooth'
+                });
+
+                // 移动端:关闭侧边栏
+                if (window.innerWidth <= 768) {
+                    document.getElementById('sidebar').classList.remove('active');
+                }
+            }
+        }
+
+        function updateActiveSection() {
+            const sections = document.querySelectorAll('.content-card, article[id]');
+            const menuItems = document.querySelectorAll('.menu-item');
+
+            let currentSection = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (window.pageYOffset >= sectionTop - 100) {
+                    currentSection = section.id;
+                }
+            });
+
+            menuItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.id === currentSection) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // ==================== 搜索功能 ====================
+        let searchIndex = [];
+
+        function buildSearchIndex() {
+            const sections = document.querySelectorAll('.content-card, article[id]');
+            searchIndex = [];
+
+            sections.forEach(section => {
+                const title = section.querySelector('h2, h3');
+                const desc = section.querySelector('.desc, p');
+                const keywords = section.querySelectorAll('.tag');
+
+                searchIndex.push({
+                    id: section.id,
+                    title: title ? title.innerText : section.id,
+                    content: desc ? desc.innerText : section.innerText.substring(0, 200),
+                    keywords: Array.from(keywords).map(k => k.innerText)
+                });
+            });
+        }
+
+        function performSearch(query) {
+            if (!query.trim()) {
+                document.getElementById('searchResults').classList.remove('active');
+                return;
+            }
+
+            const results = searchIndex
+                .map(item => {
+                    let score = 0;
+                    const q = query.toLowerCase();
+
+                    if (item.title.toLowerCase().includes(q)) score += 100;
+                    if (item.content.toLowerCase().includes(q)) score += 50;
+                    if (item.keywords.some(k => k.toLowerCase().includes(q))) score += 30;
+
+                    return { ...item, score };
+                })
+                .filter(r => r.score > 0)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 10);
+
+            displayResults(results, query);
+        }
+
+        function displayResults(results, query) {
+            const resultsDiv = document.getElementById('searchResults');
+
+            if (results.length === 0) {
+                resultsDiv.innerHTML = '<p style="padding: 15px; color: var(--text-secondary);">未找到相关内容</p>';
+            } else {
+                resultsDiv.innerHTML = results.map(r => `
+                    <div class="search-result-item" onclick="scrollToSection('${r.id}'); document.getElementById('searchResults').classList.remove('active');">
+                        <h4>${highlightText(r.title, query)}</h4>
+                        <p>${highlightText(r.content.substring(0, 100), query)}...</p>
+                    </div>
+                `).join('');
+            }
+
+            resultsDiv.classList.add('active');
+        }
+
+        function highlightText(text, query) {
+            if (!query) return text;
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<mark style="background: yellow; padding: 2px 4px; border-radius: 2px;">$1</mark>');
+        }
+
+        // ==================== 收藏功能 ====================
+        function loadBookmarks() {
+            const bookmarks = JSON.parse(localStorage.getItem('claude-docs-bookmarks') || '{}');
+            const list = document.getElementById('bookmarkList');
+
+            if (Object.keys(bookmarks).length === 0) {
+                list.innerHTML = '<li style="padding: 15px 20px; color: var(--text-secondary); font-size: 13px;">暂无收藏</li>';
+            } else {
+                list.innerHTML = Object.entries(bookmarks).map(([id, data]) => `
+                    <li class="bookmark-item">
+                        <a href="#" onclick="scrollToSection('${id}'); return false;">${data.title}</a>
+                        <button class="remove-btn" onclick="removeBookmark('${id}')" title="删除收藏">✕</button>
+                    </li>
+                `).join('');
+            }
+
+            updateBookmarkButtons(bookmarks);
+        }
+
+        function toggleBookmark(id, title) {
+            const bookmarks = JSON.parse(localStorage.getItem('claude-docs-bookmarks') || '{}');
+
+            if (bookmarks[id]) {
+                delete bookmarks[id];
+            } else {
+                bookmarks[id] = {
+                    title: title,
+                    addedAt: new Date().toISOString()
+                };
+            }
+
+            localStorage.setItem('claude-docs-bookmarks', JSON.stringify(bookmarks));
+            loadBookmarks();
+        }
+
+        function removeBookmark(id) {
+            const bookmarks = JSON.parse(localStorage.getItem('claude-docs-bookmarks') || '{}');
+            delete bookmarks[id];
+            localStorage.setItem('claude-docs-bookmarks', JSON.stringify(bookmarks));
+            loadBookmarks();
+        }
+
+        function updateBookmarkButtons(bookmarks) {
+            document.querySelectorAll('.bookmark-btn').forEach(btn => {
+                const onclick = btn.getAttribute('onclick');
+                const match = onclick.match(/toggleBookmark\('([^']+)'/);
+                if (match) {
+                    const id = match[1];
+                    if (bookmarks[id]) {
+                        btn.classList.add('bookmarked');
+                        btn.innerText = '★ 已收藏';
+                    } else {
+                        btn.classList.remove('bookmarked');
+                        btn.innerText = '⭐ 收藏此功能';
+                    }
+                }
+            });
+        }
+
+        // ==================== 复制功能 ====================
+        function copyCode(button, codeElement) {
+            const code = codeElement.innerText;
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(code).then(() => {
+                    showCopySuccess(button);
+                }).catch(() => {
+                    fallbackCopy(code, button);
+                });
+            } else {
+                fallbackCopy(code, button);
+            }
+        }
+
+        function fallbackCopy(text, button) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showCopySuccess(button);
+            } catch (err) {
+                console.error('复制失败:', err);
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function showCopySuccess(button) {
+            const originalText = button.innerText;
+            const originalBg = button.style.background;
+
+            button.innerText = '✓ 已复制!';
+            button.style.background = 'var(--success-color)';
+            button.classList.add('copied');
+
+            setTimeout(() => {
+                button.innerText = originalText;
+                button.style.background = originalBg;
+                button.classList.remove('copied');
+            }, 2000);
+        }
+
+        // ==================== 主题切换 ====================
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('claude-docs-theme', isDark ? 'dark' : 'light');
+            document.getElementById('themeBtn').innerText = isDark ? '☀️' : '🌙';
+        }
+
+        function loadTheme() {
+            const saved = localStorage.getItem('claude-docs-theme');
+            if (saved === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('themeBtn').innerText = '☀️';
+            }
+        }
+
+        // ==================== 工具函数 ====================
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // ==================== 事件监听 ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenu();
+            buildSearchIndex();
+            loadBookmarks();
+            loadTheme();
+
+            // 搜索功能
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', debounce((e) => {
+                performSearch(e.target.value);
+            }, 300));
+
+            // 点击外部关闭搜索结果
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-box') && !e.target.closest('#searchResults')) {
+                    document.getElementById('searchResults').classList.remove('active');
+                }
+            });
+
+            // 快捷键
+            document.addEventListener('keydown', (e) => {
+                // Ctrl+K / Cmd+K 打开搜索
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+                // Escape 关闭搜索
+                if (e.key === 'Escape') {
+                    document.getElementById('searchResults').classList.remove('active');
+                    searchInput.blur();
+                }
+            });
+
+            // 滚动更新当前章节
+            window.addEventListener('scroll', updateActiveSection);
+
+            // 主题切换
+            document.getElementById('themeBtn').addEventListener('click', toggleTheme);
+
+            // 移动端侧边栏切换
+            document.getElementById('sidebarToggle').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+</html>
