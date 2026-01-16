@@ -5,7 +5,9 @@
       "mcp__web-search-prime__webSearchPrime",
       "mcp__zai-mcp-server__analyze_image",
       "Bash(if exist:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "mcp__zread__get_repo_structure",
+      "Bash(git add:*)"
     ]
   }
 }
